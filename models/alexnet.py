@@ -72,7 +72,7 @@ class AlexNet(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
-    def crit(self, y, t, alpha=1.0e-1):
+    def crit(self, y, t, alpha=1.0e-2):
         height = int(math.sqrt(y.shape[1]))
         predicted_embedding = y.view(-1, height)
         embedding = F.softmax(self.embedding(t).view(-1, height, height), 2).view(-1, height)
