@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import cross_entropy
+
 __all__ = ['AlexNet', 'alexnet']
 
 # (number of filters, kernel size, stride, pad)
@@ -74,7 +76,8 @@ class AlexNet(nn.Module):
         import IPython
         IPython.embed()
         height = int(math.sqrt(y.shape[1]))
-        predicted_embedding = F.softmax(y.view(-1, height, height), 2).view(-1, height)
+        predicted_embedding = y.view(-1, height)
+        embedding = F.softmax(self.embedding(t).view(-1, height, height), 2).view(-1, height)
 
 
 def make_layers_features(cfg, input_dim, bn):
