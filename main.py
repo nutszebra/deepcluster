@@ -170,7 +170,7 @@ def train(loader, model, opt, epoch):
             print('Epoch: [{0}][{1}/{2}]\t'
                   'Loss: {loss.val:.4f} ({loss.avg:.4f})'
                   .format(epoch, i, len(loader), loss=losses))
-        return losses.avg
+            return losses.avg
 
 
 if __name__ == '__main__':
