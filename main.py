@@ -61,10 +61,14 @@ def main():
     torch.cuda.manual_seed_all(args.seed)
     np.random.seed(args.seed)
 
+    # load imgs
+    dataset = datasets.ImageFolder(args.data)
+    image_lists, _ = zip(*dataset.imgs)
+
     # CNN
     if args.verbose:
         print('Architecture: {}'.format(args.arch))
-    model = models.__dict__[args.arch](sobel=args.sobel)
+    model = models.__dict__[args.arch](sobel=args.sobel, length_train=len(image_lists))
     model.cuda()
     cudnn.benchmark = True
 
@@ -93,9 +97,6 @@ def main():
     exp_check = os.path.join(args.exp, 'checkpoints')
     if not os.path.isdir(exp_check):
         os.makedirs(exp_check)
-
-    dataset = datasets.ImageFolder(args.data)
-    image_lists, _ = zip(*dataset.imgs)
 
     # training convnet with DeepCluster
     hash_git = subprocess.check_output('git log -n 1', shell=True).decode('utf-8').split(' ')[1].split('\n')[0]

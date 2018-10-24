@@ -2,6 +2,7 @@ import math
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 __all__ = ['AlexNet', 'alexnet']
 
@@ -13,8 +14,9 @@ CFG = {
 
 class AlexNet(nn.Module):
 
-    def __init__(self, features, num_classes, sobel):
+    def __init__(self, features, num_classes, sobel, length_train):
         super(AlexNet, self).__init__()
+        self.embedding = nn.Embedding(length_train, num_classes)
         self.features = features
         self.classifier = nn.Sequential(nn.Dropout(0.5),
                                         nn.Linear(256 * 6 * 6, 4096),
@@ -71,6 +73,8 @@ class AlexNet(nn.Module):
     def crit(self, y, t):
         import IPython
         IPython.embed()
+        height = int(math.sqrt(y.shape[1]))
+        predicted_embedding = F.softmax(y.view(-1, height, height), 2).view(-1, height)
 
 
 def make_layers_features(cfg, input_dim, bn):
@@ -89,7 +93,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=10 * 10):
+def alexnet(sobel=False, bn=True, out=10 * 10, length_train=None):
     dim = 2 + int(not sobel)
-    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel)
+    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train)
     return model
