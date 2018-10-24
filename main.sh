@@ -6,13 +6,13 @@
 #
 #!/bin/bash
 
-DIR="/home/kishida_local/ILSVRC/Data/CLS-LOC/train"
+DIR="/media/nutszebra/ILSVRC/Data/CLS-LOC/train"
 ARCH="alexnet"
 LR=0.05
 WD=-5
 WORKERS=12
-EXP="/home/kishida_local/test/exp"
-PYTHON="/home/kishida_local/.pyenv/shims/python"
+EXP="/home/nutszebra/Downloads/result_example_embeddings"
+PYTHON="/home/nutszebra/.pyenv/shims/python"
 
 mkdir -p ${EXP}
 
