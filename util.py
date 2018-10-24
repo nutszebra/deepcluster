@@ -7,9 +7,7 @@
 import os
 import pickle
 
-import numpy as np
 import torch
-from torch.utils.data.sampler import Sampler
 
 import models
 
@@ -29,7 +27,7 @@ def load_model(path):
 
         # deal with a dataparallel table
         def rename_key(key):
-            if not 'module' in key:
+            if 'module' not in key:
                 return key
             return ''.join(key.split('.module'))
 
@@ -44,64 +42,6 @@ def load_model(path):
         model = None
         print("=> no checkpoint found at '{}'".format(path))
     return model
-
-
-class UnifLabelSampler(Sampler):
-    """Samples elements uniformely accross pseudolabels.
-        Args:
-            N (int): size of returned iterator.
-            images_lists: dict of key (target), value (list of data with this target)
-    """
-
-    def __init__(self, N, images_lists):
-        self.N = N
-        self.images_lists = images_lists
-        self.indexes = self.generate_indexes_epoch()
-
-    def generate_indexes_epoch(self):
-        size_per_pseudolabel = int(self.N / len(self.images_lists)) + 1
-        res = np.zeros(size_per_pseudolabel * len(self.images_lists))
-
-        for i in range(len(self.images_lists)):
-            indexes = np.random.choice(
-                self.images_lists[i],
-                size_per_pseudolabel,
-                replace=(len(self.images_lists[i]) <= size_per_pseudolabel)
-            )
-            res[i * size_per_pseudolabel: (i + 1) * size_per_pseudolabel] = indexes
-
-        np.random.shuffle(res)
-        return res[:self.N].astype('int')
-
-    def __iter__(self):
-        return iter(self.indexes)
-
-    def __len__(self):
-        return self.N
-
-
-class AverageMeter(object):
-    """Computes and stores the average and current value"""
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def update(self, val, n=1):
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
-
-
-def learning_rate_decay(optimizer, t, lr_0):
-    for param_group in optimizer.param_groups:
-        lr = lr_0 / np.sqrt(1 + lr_0 * param_group['weight_decay'] * t)
-        param_group['lr'] = lr
 
 
 class Logger():
