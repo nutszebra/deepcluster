@@ -117,7 +117,7 @@ def main():
         # print log
         if args.verbose:
             print('###### Epoch [{0}] ###### \n'
-                  'ConvNet loss: {3:.3f}'
+                  'ConvNet loss: {1:.3f}'
                   .format(epoch, loss))
             print('####################### \n')
         # save running checkpoint
