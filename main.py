@@ -25,15 +25,10 @@ parser.add_argument('--arch', '-a', type=str, metavar='ARCH',
 parser.add_argument('--sobel', action='store_true', help='Sobel filtering')
 parser.add_argument('--clustering', type=str, choices=['Kmeans', 'PIC'],
                     default='Kmeans', help='clustering algorithm (default: Kmeans)')
-parser.add_argument('--nmb_cluster', '--k', type=int, default=10000,
-                    help='number of cluster for k-means (default: 10000)')
 parser.add_argument('--lr', default=0.05, type=float,
                     help='learning rate (default: 0.05)')
 parser.add_argument('--wd', default=-5, type=float,
                     help='weight decay pow (default: -5)')
-parser.add_argument('--reassign', type=float, default=1.,
-                    help="""how many epochs of training between two consecutive
-                    reassignments of clusters (default: 1)""")
 parser.add_argument('--workers', default=4, type=int,
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--epochs', type=int, default=200,
@@ -133,7 +128,7 @@ def train(loader, model, opt, epoch):
     losses = AverageMeter()
     # switch to train mode
     model.train()
-    for i, (input_tensor, target) in enumerate(tqdm.tqdm(loader)):
+    for i, (input_tensor, target) in enumerate(tqdm.tqdm(loader, desc='train {} epochs'.format(epoch), leave=True, ncols=80)):
         # save checkpoint
         n = len(loader) * epoch + i
         if n % args.checkpoints == 0:
@@ -170,7 +165,7 @@ def train(loader, model, opt, epoch):
             print('Epoch: [{0}][{1}/{2}]\t'
                   'Loss: {loss.val:.4f} ({loss.avg:.4f})'
                   .format(epoch, i, len(loader), loss=losses))
-            return losses.avg
+    return losses.avg
 
 
 if __name__ == '__main__':
