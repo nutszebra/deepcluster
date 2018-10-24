@@ -10,7 +10,6 @@ DIR="/home/kishida_local/ILSVRC/Data/CLS-LOC/train"
 ARCH="alexnet"
 LR=0.05
 WD=-5
-K=10000
 WORKERS=12
 EXP="/home/kishida_local/test/exp"
 PYTHON="/home/kishida_local/.pyenv/shims/python"
@@ -18,4 +17,4 @@ PYTHON="/home/kishida_local/.pyenv/shims/python"
 mkdir -p ${EXP}
 
 CUDA_VISIBLE_DEVICES=0 ${PYTHON} main.py ${DIR} --exp ${EXP} --arch ${ARCH} \
-  --lr ${LR} --wd ${WD} --k ${K} --sobel --verbose --workers ${WORKERS}
+  --lr ${LR} --wd ${WD} --sobel --verbose --workers ${WORKERS}
