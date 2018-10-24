@@ -44,7 +44,7 @@ parser.add_argument('--exp', type=str, default='', help='path to exp folder')
 parser.add_argument('--verbose', action='store_true', help='chatty')
 parser.add_argument('--alpha', default=1.0e-2, type=float,
                     help='alpha')
-parser.add_argument('--alpha', default=-1, type=int,
+parser.add_argument('--gpu', default=-1, type=int,
                     help='gpu')
 
 
