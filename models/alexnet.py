@@ -79,10 +79,11 @@ class AlexNet(nn.Module):
     def crit(self, y, t):
         height = int(math.sqrt(y.shape[1]))
         predicted_embedding = y.view(-1, height)
-        embedding = F.softmax(self.embedding(t).view(-1, height, height), 2).view(-1, height)
-        loss = cross_entropy.softmax_cross_entropy(predicted_embedding, embedding, average=True, reduce=True)
+        embedding = self.embedding(t).view(-1, height)
+        embedding_softmax = F.softmax(embedding, 1)
+        loss = cross_entropy.softmax_cross_entropy(predicted_embedding, embedding_softmax, average=True, reduce=True)
         batch = embedding.shape[0]
-        loss_push = cross_entropy.softmax_cross_entropy(embedding[:int(batch / 2)], embedding[int(batch / 2):], average=True, reduce=True)
+        loss_push = cross_entropy.softmax_cross_entropy(embedding[:int(batch / 2)], embedding_softmax[int(batch / 2):], average=True, reduce=True)
         return loss - self.alpha * loss_push
 
 
