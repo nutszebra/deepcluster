@@ -44,6 +44,8 @@ parser.add_argument('--exp', type=str, default='', help='path to exp folder')
 parser.add_argument('--verbose', action='store_true', help='chatty')
 parser.add_argument('--alpha', default=1.0e-2, type=float,
                     help='alpha')
+parser.add_argument('--alpha', default=-1, type=int,
+                    help='gpu')
 
 
 def main():
@@ -63,7 +65,7 @@ def main():
     if args.verbose:
         print('Architecture: {}'.format(args.arch))
     model = models.__dict__[args.arch](sobel=args.sobel, length_train=len(image_lists), alpha=args.alpha)
-    model.cuda()
+    model.cuda(args.gpu)
     cudnn.benchmark = True
 
     # create optimizer
@@ -150,8 +152,8 @@ def train(loader, model, opt, epoch):
                 'optimizer': opt.state_dict()
             }, path)
 
-        target = target.cuda(async=True)
-        input_var = torch.autograd.Variable(input_tensor.cuda())
+        target = target.cuda(args.gpu, async=True)
+        input_var = torch.autograd.Variable(input_tensor.cuda(args.gpu))
         target_var = torch.autograd.Variable(target)
 
         output = model(input_var)
