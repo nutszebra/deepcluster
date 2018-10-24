@@ -22,22 +22,19 @@ parser.add_argument('data', metavar='DIR', help='path to dataset')
 parser.add_argument('--arch', '-a', type=str, metavar='ARCH',
                     choices=['alexnet', 'vgg16'], default='alexnet',
                     help='CNN architecture (default: alexnet)')
-parser.add_argument('--sobel', action='store_true', help='Sobel filtering')
-parser.add_argument('--clustering', type=str, choices=['Kmeans', 'PIC'],
-                    default='Kmeans', help='clustering algorithm (default: Kmeans)')
-parser.add_argument('--lr', default=0.05, type=float,
+parser.add_argument('--sobel', default=True, action='store_true', help='Sobel filtering')
+parser.add_argument('--lr', default=1.0e-4, type=float,
                     help='learning rate (default: 0.05)')
-parser.add_argument('--wd', default=-5, type=float,
+parser.add_argument('--weight_decay', default=1.0e-5, type=float,
                     help='weight decay pow (default: -5)')
 parser.add_argument('--workers', default=4, type=int,
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', type=int, default=200,
+parser.add_argument('--epochs', type=int, default=300,
                     help='number of total epochs to run (default: 200)')
 parser.add_argument('--start_epoch', default=0, type=int,
                     help='manual epoch number (useful on restarts) (default: 0)')
-parser.add_argument('--batch', default=256, type=int,
-                    help='mini-batch size (default: 256)')
-parser.add_argument('--momentum', default=0.9, type=float, help='momentum (default: 0.9)')
+parser.add_argument('--batch', default=128, type=int,
+                    help='mini-batch size (default: 128)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to checkpoint (default: None)')
 parser.add_argument('--checkpoints', type=int, default=25000,
@@ -68,11 +65,16 @@ def main():
     cudnn.benchmark = True
 
     # create optimizer
-    optimizer = torch.optim.SGD(
+    # optimizer = torch.optim.SGD(
+    #     filter(lambda x: x.requires_grad, model.parameters()),
+    #     lr=args.lr,
+    #     momentum=args.momentum,
+    #     weight_decay=10**args.wd,
+    # )
+    optimizer = torch.optim.Adam(
         filter(lambda x: x.requires_grad, model.parameters()),
         lr=args.lr,
-        momentum=args.momentum,
-        weight_decay=10**args.wd,
+        weight_decay=args.weight_decay,
     )
 
     # optionally resume from a checkpoint
