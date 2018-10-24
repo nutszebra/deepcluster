@@ -16,8 +16,12 @@ CFG = {
 
 class AlexNet(nn.Module):
 
-    def __init__(self, features, num_classes, sobel, length_train):
+    def __init__(self, features, num_classes, sobel, length_train, alpha):
         super(AlexNet, self).__init__()
+        print('num_classes: {}'.format(num_classes))
+        print('sobel: {}'.format(sobel))
+        print('alpha: {}'.format(alpha))
+        self.alpha = alpha
         self.embedding = nn.Embedding(length_train, num_classes)
         self.features = features
         self.classifier = nn.Sequential(nn.Dropout(0.5),
@@ -72,14 +76,14 @@ class AlexNet(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
-    def crit(self, y, t, alpha=1.0e-2):
+    def crit(self, y, t):
         height = int(math.sqrt(y.shape[1]))
         predicted_embedding = y.view(-1, height)
         embedding = F.softmax(self.embedding(t).view(-1, height, height), 2).view(-1, height)
         loss = cross_entropy.softmax_cross_entropy(predicted_embedding, embedding, average=True, reduce=True)
         batch = embedding.shape[0]
         loss_push = cross_entropy.softmax_cross_entropy(embedding[:int(batch / 2)], embedding[int(batch / 2):], average=True, reduce=True)
-        return loss - alpha * loss_push
+        return loss - self.alpha * loss_push
 
 
 def make_layers_features(cfg, input_dim, bn):
@@ -98,7 +102,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=10 * 10, length_train=None):
+def alexnet(sobel=False, bn=True, out=10 * 10, length_train=None, alpha=1.0e-2):
     dim = 2 + int(not sobel)
-    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train)
+    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha)
     return model
