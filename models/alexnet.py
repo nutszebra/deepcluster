@@ -72,12 +72,16 @@ class AlexNet(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
-    def crit(self, y, t):
+    def crit(self, y, t, alpha=1.0e-2):
         import IPython
         IPython.embed()
         height = int(math.sqrt(y.shape[1]))
         predicted_embedding = y.view(-1, height)
         embedding = F.softmax(self.embedding(t).view(-1, height, height), 2).view(-1, height)
+        loss = cross_entropy.softmax_cross_entropy(predicted_embedding, embedding, average=True, reduce=True)
+        batch = embedding.shape[0]
+        loss_push = cross_entropy.softmax_cross_entropy(embedding[:int(batch / 2)], embedding[int(batch / 2):], average=True, reduce=True)
+        return loss - alpha * loss_push
 
 
 def make_layers_features(cfg, input_dim, bn):
