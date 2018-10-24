@@ -65,7 +65,6 @@ def main():
     if args.verbose:
         print('Architecture: {}'.format(args.arch))
     model = models.__dict__[args.arch](sobel=args.sobel)
-    model.top_layer = None
     model.cuda()
     cudnn.benchmark = True
 
@@ -83,10 +82,6 @@ def main():
             print("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
             args.start_epoch = checkpoint['epoch']
-            # remove top_layer parameters from checkpoint
-            for key in checkpoint['state_dict']:
-                if 'top_layer' in key:
-                    del checkpoint['state_dict'][key]
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
             print("=> loaded checkpoint '{}' (epoch {})"
@@ -112,6 +107,7 @@ def main():
             train_dataset,
             batch_size=args.batch,
             num_workers=args.workers,
+            shuffle=True,
             pin_memory=True,
         )
 

@@ -50,8 +50,7 @@ class AlexNet(nn.Module):
         x = self.features(x)
         x = x.view(x.size(0), 256 * 6 * 6)
         x = self.classifier(x)
-        if self.top_layer:
-            x = self.top_layer(x)
+        x = self.top_layer(x)
         return x
 
     def _initialize_weights(self):
@@ -90,7 +89,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=1000):
+def alexnet(sobel=False, bn=True, out=10 * 10):
     dim = 2 + int(not sobel)
     model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel)
     return model
