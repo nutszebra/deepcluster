@@ -22,22 +22,19 @@ parser.add_argument('data', metavar='DIR', help='path to dataset')
 parser.add_argument('--arch', '-a', type=str, metavar='ARCH',
                     choices=['alexnet', 'vgg16'], default='alexnet',
                     help='CNN architecture (default: alexnet)')
-parser.add_argument('--sobel', action='store_true', help='Sobel filtering')
-parser.add_argument('--clustering', type=str, choices=['Kmeans', 'PIC'],
-                    default='Kmeans', help='clustering algorithm (default: Kmeans)')
-parser.add_argument('--lr', default=0.05, type=float,
+parser.add_argument('--sobel', default=True, action='store_true', help='Sobel filtering')
+parser.add_argument('--lr', default=1.0e-4, type=float,
                     help='learning rate (default: 0.05)')
-parser.add_argument('--wd', default=-5, type=float,
+parser.add_argument('--weight_decay', default=1.0e-5, type=float,
                     help='weight decay pow (default: -5)')
 parser.add_argument('--workers', default=4, type=int,
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', type=int, default=200,
+parser.add_argument('--epochs', type=int, default=300,
                     help='number of total epochs to run (default: 200)')
 parser.add_argument('--start_epoch', default=0, type=int,
                     help='manual epoch number (useful on restarts) (default: 0)')
-parser.add_argument('--batch', default=256, type=int,
-                    help='mini-batch size (default: 256)')
-parser.add_argument('--momentum', default=0.9, type=float, help='momentum (default: 0.9)')
+parser.add_argument('--batch', default=128, type=int,
+                    help='mini-batch size (default: 128)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to checkpoint (default: None)')
 parser.add_argument('--checkpoints', type=int, default=25000,
@@ -45,6 +42,10 @@ parser.add_argument('--checkpoints', type=int, default=25000,
 parser.add_argument('--seed', type=int, default=31, help='random seed (default: 31)')
 parser.add_argument('--exp', type=str, default='', help='path to exp folder')
 parser.add_argument('--verbose', action='store_true', help='chatty')
+parser.add_argument('--alpha', default=1.0e-2, type=float,
+                    help='alpha')
+parser.add_argument('--alpha', default=-1, type=int,
+                    help='gpu')
 
 
 def main():
@@ -63,16 +64,21 @@ def main():
     # CNN
     if args.verbose:
         print('Architecture: {}'.format(args.arch))
-    model = models.__dict__[args.arch](sobel=args.sobel, length_train=len(image_lists))
-    model.cuda()
+    model = models.__dict__[args.arch](sobel=args.sobel, length_train=len(image_lists), alpha=args.alpha)
+    model.cuda(args.gpu)
     cudnn.benchmark = True
 
     # create optimizer
-    optimizer = torch.optim.SGD(
+    # optimizer = torch.optim.SGD(
+    #     filter(lambda x: x.requires_grad, model.parameters()),
+    #     lr=args.lr,
+    #     momentum=args.momentum,
+    #     weight_decay=10**args.wd,
+    # )
+    optimizer = torch.optim.Adam(
         filter(lambda x: x.requires_grad, model.parameters()),
         lr=args.lr,
-        momentum=args.momentum,
-        weight_decay=10**args.wd,
+        weight_decay=args.weight_decay,
     )
 
     # optionally resume from a checkpoint
@@ -146,8 +152,8 @@ def train(loader, model, opt, epoch):
                 'optimizer': opt.state_dict()
             }, path)
 
-        target = target.cuda(async=True)
-        input_var = torch.autograd.Variable(input_tensor.cuda())
+        target = target.cuda(args.gpu, async=True)
+        input_var = torch.autograd.Variable(input_tensor.cuda(args.gpu))
         target_var = torch.autograd.Variable(target)
 
         output = model(input_var)
