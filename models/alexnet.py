@@ -102,7 +102,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=1000, length_train=None, alpha=1.0e-2):
+def alexnet(sobel=False, bn=True, out=100, length_train=None, alpha=1.0e-2):
     dim = 2 + int(not sobel)
     model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha)
     return model
