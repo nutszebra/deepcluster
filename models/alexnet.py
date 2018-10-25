@@ -73,7 +73,7 @@ class AlexNet(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
-                m.weight.data.normal_(0, 1.0)
+                m.weight.data.normal_(0, 0.1)
                 m.bias.data.zero_()
 
     def crit(self, y, t):
