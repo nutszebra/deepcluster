@@ -50,6 +50,7 @@ parser.add_argument('--gpu', default=-1, type=int,
 
 def main():
     global args
+    global model
     args = parser.parse_args()
 
     # fix random seeds
