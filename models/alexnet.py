@@ -99,7 +99,7 @@ class AlexNet(nn.Module):
             # index of used embedding and non-used ones
             used_embedding = torch.nonzero(self.history).squeeze(1)
             unused_embedding = torch.nonzero(self.history == 0).squeeze(1)
-            print('Reassignment: {}'.format(unused_embedding.data.cpu().numpy()))
+            print('Reassignment: {}'.format(len(unused_embedding.data.cpu().numpy())))
             for i in unused_embedding:
                 selected_embedding = self.embedding.weight[used_embedding[random.randint(0, len(used_embedding) - 1)]]
                 self.embedding.weight[i].data = self.update_memory(selected_embedding, torch.randn_like(selected_embedding), self.momentum)
