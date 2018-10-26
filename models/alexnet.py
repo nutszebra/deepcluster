@@ -1,4 +1,5 @@
 import math
+import random
 
 import torch
 import torch.nn as nn
@@ -16,13 +17,18 @@ CFG = {
 
 class AlexNet(nn.Module):
 
-    def __init__(self, features, num_classes, sobel, length_train, alpha, memory_dim):
+    def __init__(self, features, num_classes, sobel, length_train, alpha, memory_dim, momentum):
         super(AlexNet, self).__init__()
         print('num_classes: {}'.format(num_classes))
         print('sobel: {}'.format(sobel))
         print('alpha: {}'.format(alpha))
-        self.alpha = alpha
+        self.alpha, self.momentum = alpha, momentum
+        # define embedding
         self.embedding = nn.Embedding(memory_dim, num_classes)
+        # matrix to record whether embedding is used or not while training
+        self.register_buffer('history', torch.randn(memory_dim))
+        self.reset_history()
+        # define classifier
         self.features = features
         self.classifier = nn.Sequential(nn.Dropout(0.5),
                                         nn.Linear(256 * 6 * 6, 4096),
@@ -76,15 +82,31 @@ class AlexNet(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
+    def reset_history(self):
+        self.history.zero_()
+
+    def update_memory(self, x1, x2, momentum):
+        return self.normalize_key(momentum * x1 + (1.0 - momentum) * x2).detach()
+
+    def reassign(self):
+        if ((self.history == 0).sum().item() == 0) or (self.history.sum().item() == 0):
+            # every memory are used at least once or no history, so no assignment
+            pass
+        else:
+            used_embedding = torch.nonzero(self.history).squeeze(1)
+            unused_embedding = torch.nonzero(self.history == 0).squeeze(1)
+            for i in unused_embedding:
+                selected_memory = self.embedding[used_embedding[random.randint(0, len(used_embedding) - 1)]]
+                self.embedding[i] = self.update_memory(selected_memory, torch.randn_like(selected_memory), self.momentum)
+        # preprocess: reset history and normalize memory
+        self.reset_history()
+
     def crit(self, y, t):
         import IPython
         IPython.embed()
-        predicted_embedding = y
-        embedding = self.embedding(t)
-        embedding_softmax = F.softmax(embedding, 1)
-        loss = cross_entropy.softmax_cross_entropy(predicted_embedding, embedding_softmax, average=True, reduce=True)
-        batch = embedding.shape[0]
-        loss_push = cross_entropy.softmax_cross_entropy(embedding[:int(batch / 2)], embedding_softmax[int(batch / 2):], average=True, reduce=True)
+        t = self.embedding.weight[torch.argmax(torch.matmul(F.softmax(y, 1), F.softmax(self.embedding.weight, 1).transpose(0, 1)), 1)]
+        loss = cross_entropy.softmax_cross_entropy(y, F.softmax(t, 1), average=True, reduce=True)
+        loss_push = cross_entropy.softmax_cross_entropy(torch.cat((t[1:], t[:1])), F.softmax(t, 1), average=True, reduce=True)
         return loss - self.alpha * loss_push
 
 
@@ -104,7 +126,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000):
+def alexnet(sobel=True, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.95):
     dim = 2 + int(not sobel)
-    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha, memory_dim)
+    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha, memory_dim, momentum)
     return model
