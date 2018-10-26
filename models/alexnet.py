@@ -96,8 +96,6 @@ class AlexNet(nn.Module):
             # every memory are used at least once or no history, so no assignment
             pass
         else:
-            import IPython
-            IPython.embed()
             # index of used embedding and non-used ones
             used_embedding = torch.nonzero(self.history).squeeze(1)
             unused_embedding = torch.nonzero(self.history == 0).squeeze(1)
@@ -106,8 +104,6 @@ class AlexNet(nn.Module):
                 selected_embedding = self.embedding.weight[used_embedding[random.randint(0, len(used_embedding) - 1)]]
                 self.embedding.weight[i].data = self.update_embedding(selected_embedding, 0.001 * torch.randn_like(selected_embedding), self.momentum)
         self.reset_history()
-        import IPython
-        IPython.embed()
 
     def crit(self, y, t):
         # reassing embedding
@@ -117,6 +113,7 @@ class AlexNet(nn.Module):
                 self.reassign()
         # index of embedding that are nearest
         index_of_min_embedding = torch.argmax(torch.matmul(F.softmax(y, 1), F.softmax(self.embedding.weight, 1).transpose(0, 1)), 1)
+        print(index_of_min_embedding)
         if self.training is True:
             # update history while training
             self.history[index_of_min_embedding] += 1
