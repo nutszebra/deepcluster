@@ -113,6 +113,7 @@ class AlexNet(nn.Module):
                 self.reassign()
         # index of embedding that are nearest
         index_of_min_embedding = torch.argmax(torch.matmul(F.softmax(y, 1), F.softmax(self.embedding.weight, 1).transpose(0, 1)), 1)
+        print(index_of_min_embedding)
         if self.training is True:
             # update history while training
             self.history[index_of_min_embedding] += 1
