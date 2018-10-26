@@ -102,7 +102,7 @@ class AlexNet(nn.Module):
             print('Reassignment: {}'.format(len(unused_embedding.data.cpu().numpy())))
             for i in unused_embedding:
                 selected_embedding = self.embedding.weight[used_embedding[random.randint(0, len(used_embedding) - 1)]]
-                self.embedding.weight[i].data = self.update_embedding(selected_embedding, 0.001 * torch.randn_like(selected_embedding), self.momentum)
+                self.embedding.weight.data[i] = self.update_embedding(selected_embedding, 0.001 * torch.randn_like(selected_embedding), self.momentum)
         self.reset_history()
 
     def crit(self, y, t):
