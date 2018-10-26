@@ -88,7 +88,7 @@ class AlexNet(nn.Module):
         self.counter = 0
 
     def update_memory(self, x1, x2, momentum):
-        return self.normalize_key(momentum * x1 + (1.0 - momentum) * x2).detach()
+        return (momentum * x1 + (1.0 - momentum) * x2).detach()
 
     def reassign(self):
         if ((self.history == 0).sum().item() == 0) or (self.history.sum().item() == 0):
