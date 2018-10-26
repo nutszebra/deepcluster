@@ -121,8 +121,7 @@ class AlexNet(nn.Module):
         loss_push = cross_entropy.softmax_cross_entropy(torch.cat((t[1:], t[:1])), F.softmax(t, 1), average=True, reduce=True)
         loss_push2 = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=True)
         # return loss - self.alpha * loss_push - self.beta * loss_push2
-        print(loss_push2)
-        return  - self.beta * loss_push2
+        return loss - self.beta * loss_push2
 
 
 def make_layers_features(cfg, input_dim, bn):
@@ -141,7 +140,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.99, reassign_period=200, beta=1.0):
+def alexnet(sobel=False, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.99, reassign_period=200, beta=1.0e-3):
     dim = 2 + int(not sobel)
     model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha, memory_dim, momentum, reassign_period, beta)
     return model
