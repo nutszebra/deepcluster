@@ -86,6 +86,7 @@ class AlexNet(nn.Module):
     def reset_history(self):
         self.history.zero_()
         self.counter = 0
+        self.embedding.weight = self.embedding.weight.detach()
 
     def update_memory(self, x1, x2, momentum):
         return (momentum * x1 + (1.0 - momentum) * x2).detach()
