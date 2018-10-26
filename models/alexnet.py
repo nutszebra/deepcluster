@@ -113,7 +113,6 @@ class AlexNet(nn.Module):
                 self.reassign()
         # index of embedding that are nearest
         index_of_min_embedding = torch.argmax(torch.matmul(F.softmax(y, 1), F.softmax(self.embedding.weight, 1).transpose(0, 1)), 1)
-        print(self.top_layer.weight.data)
         if self.training is True:
             # update history while training
             self.history[index_of_min_embedding] += 1
@@ -122,6 +121,7 @@ class AlexNet(nn.Module):
         loss_push = cross_entropy.softmax_cross_entropy(torch.cat((t[1:], t[:1])), F.softmax(t, 1), average=True, reduce=True)
         loss_push2 = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=True)
         # return loss - self.alpha * loss_push - self.beta * loss_push2
+        print(loss_push2)
         return  - self.beta * loss_push2
 
 
