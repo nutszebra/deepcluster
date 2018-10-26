@@ -17,12 +17,12 @@ CFG = {
 
 class AlexNet(nn.Module):
 
-    def __init__(self, features, num_classes, sobel, length_train, alpha, memory_dim, momentum, reassign_period):
+    def __init__(self, features, num_classes, sobel, length_train, alpha, memory_dim, momentum, reassign_period, beta):
         super(AlexNet, self).__init__()
         print('num_classes: {}'.format(num_classes))
         print('sobel: {}'.format(sobel))
         print('alpha: {}'.format(alpha))
-        self.alpha, self.momentum, self.reassign_period = alpha, momentum, reassign_period
+        self.alpha, self.momentum, self.reassign_period, self.beta = alpha, momentum, reassign_period, beta
         # define embedding
         self.embedding = nn.Embedding(memory_dim, num_classes)
         # matrix to record whether embedding is used or not while training
@@ -102,7 +102,7 @@ class AlexNet(nn.Module):
             print('Reassignment: {}'.format(len(unused_embedding.data.cpu().numpy())))
             for i in unused_embedding:
                 selected_embedding = self.embedding.weight[used_embedding[random.randint(0, len(used_embedding) - 1)]]
-                self.embedding.weight[i].data = self.update_memory(selected_embedding, 0.01 * torch.randn_like(selected_embedding), self.momentum)
+                self.embedding.weight[i].data = self.update_memory(selected_embedding, torch.randn_like(selected_embedding), self.momentum)
         self.reset_history()
 
     def crit(self, y, t):
@@ -120,7 +120,8 @@ class AlexNet(nn.Module):
         t = self.embedding.weight[index_of_min_embedding]
         loss = cross_entropy.softmax_cross_entropy(y, F.softmax(t, 1), average=True, reduce=True)
         loss_push = cross_entropy.softmax_cross_entropy(torch.cat((t[1:], t[:1])), F.softmax(t, 1), average=True, reduce=True)
-        return loss - self.alpha * loss_push
+        loss_push2 = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=True)
+        return loss - self.alpha * loss_push - self.beta * loss_push2
 
 
 def make_layers_features(cfg, input_dim, bn):
@@ -139,7 +140,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=True, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.99, reassign_period=200):
+def alexnet(sobel=True, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.99, reassign_period=200, beta=1.0e-2):
     dim = 2 + int(not sobel)
-    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha, memory_dim, momentum, reassign_period)
+    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha, memory_dim, momentum, reassign_period, beta)
     return model
