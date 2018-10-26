@@ -87,7 +87,7 @@ class AlexNet(nn.Module):
         self.history.zero_()
         self.counter = 0
 
-    def update_memory(self, x1, x2, momentum):
+    def update_embedding(self, x1, x2, momentum):
         return (momentum * x1 + (1.0 - momentum) * x2).detach()
 
     def reassign(self):
@@ -104,7 +104,7 @@ class AlexNet(nn.Module):
             print('Reassignment: {}'.format(len(unused_embedding.data.cpu().numpy())))
             for i in unused_embedding:
                 selected_embedding = self.embedding.weight[used_embedding[random.randint(0, len(used_embedding) - 1)]]
-                self.embedding.weight[i].data = self.update_memory(selected_embedding, torch.randn_like(selected_embedding), self.momentum)
+                self.embedding.weight[i].data = self.update_embedding(selected_embedding, 0.001 * torch.randn_like(selected_embedding), self.momentum)
         self.reset_history()
         import IPython
         IPython.embed()
