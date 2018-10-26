@@ -20,14 +20,14 @@ def softmax_cross_entropy(y, t, average=True, reduce=True):
     return SoftmaxCrossEntropy(average, reduce)(y, t)
 
 
-if __name__ ==  "__main__":
+if __name__ == "__main__":
     import torch
     import torch.nn.functional as F
-    w = torch.nn.Parameter(torch.FloatTensor([0.1, 0.2, 0.3, 0.4, 0.5]))
-    t = torch.FloatTensor([0.2, 0.1, 0.1, 0.5, 0.1])
+    w = torch.nn.Parameter(torch.FloatTensor([[0.1, 0.2, 0.3, 0.4, 0.5], [0.1, 0.1, 0.1, 0.1, 0.1]]))
+    t = torch.FloatTensor([[0.2, 0.1, 0.1, 0.5, 0.1], [0.2, 0.1, 0.1, 0.5, 0.1]])
     optimizer = torch.optim.SGD([w], lr=0.1)
     for i in range(20000):
-        loss = softmax_cross_entropy(w.unsqueeze(0), t)
+        loss = softmax_cross_entropy(w, t)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
