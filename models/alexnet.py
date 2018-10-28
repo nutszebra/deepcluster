@@ -133,6 +133,8 @@ class AlexNet(nn.Module):
             else:
                 self.mean_ce = self.momentum * self.mean_ce + (1.0 - self.momentum) * loss_push2.data
                 return - (loss_push2 - self.mean_ce)
+        else:
+            return loss_push2
 
 
 def make_layers_features(cfg, input_dim, bn):
