@@ -107,21 +107,22 @@ class AlexNet(nn.Module):
 
     def crit(self, y, t):
         # reassing embedding
-        if self.training is True:
-            self.counter += 1
-            if self.counter >= self.reassign_period:
-                self.reassign()
+        # if self.training is True:
+        #     self.counter += 1
+        #     if self.counter >= self.reassign_period:
+        #         self.reassign()
         # index of embedding that are nearest
-        index_of_min_embedding = torch.argmax(torch.matmul(torch.log(F.softmax(y, 1)), F.softmax(self.embedding.weight, 1).transpose(0, 1)), 1)
-        if self.training is True:
+        # index_of_min_embedding = torch.argmax(torch.matmul(torch.log(F.softmax(y, 1)), F.softmax(self.embedding.weight, 1).transpose(0, 1)), 1)
+        # if self.training is True:
             # update history while training
-            self.history[index_of_min_embedding] += 1
-        t = self.embedding.weight[index_of_min_embedding]
-        loss = cross_entropy.softmax_cross_entropy(y, F.softmax(t, 1), average=True, reduce=True)
-        loss_push = cross_entropy.softmax_cross_entropy(torch.cat((t[1:], t[:1])), F.softmax(t, 1), average=True, reduce=True)
+            # self.history[index_of_min_embedding] += 1
+        # t = self.embedding.weight[index_of_min_embedding]
+        # loss = cross_entropy.softmax_cross_entropy(y, F.softmax(t, 1), average=True, reduce=True)
+        # loss_push = cross_entropy.softmax_cross_entropy(torch.cat((t[1:], t[:1])), F.softmax(t, 1), average=True, reduce=True)
         loss_push2 = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=True)
         # return loss - self.alpha * loss_push - self.beta * loss_push2
-        return loss + self.alpha * loss_push - self.beta * loss_push2
+        # return loss + self.alpha * loss_push - self.beta * loss_push2
+        return loss_push2
 
 
 def make_layers_features(cfg, input_dim, bn):
