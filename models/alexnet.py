@@ -107,7 +107,6 @@ class AlexNet(nn.Module):
         self.reset_history()
 
     def crit(self, y, t):
-        print(y)
         # reassing embedding
         # if self.training is True:
         #     self.counter += 1
@@ -153,7 +152,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.05, reassign_period=200, beta=1.0e-3):
+def alexnet(sobel=False, bn=True, out=16, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.05, reassign_period=200, beta=1.0e-3):
     dim = 2 + int(not sobel)
     model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha, memory_dim, momentum, reassign_period, beta)
     return model
