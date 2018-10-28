@@ -129,7 +129,7 @@ class AlexNet(nn.Module):
                 self.mean_ce = loss_push2.data
             else:
                 self.mean_ce = self.momentum * self.mean_ce + (1.0 - self.momentum) * loss_push2.data
-        return 0.0 * loss_push2
+        return - (loss_push2 - self.mean_ce)
 
 
 def make_layers_features(cfg, input_dim, bn):
@@ -148,7 +148,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.5, reassign_period=200, beta=1.0e-3):
+def alexnet(sobel=False, bn=True, out=32, length_train=None, alpha=1.0e-2, memory_dim=10000, momentum=0.9, reassign_period=200, beta=1.0e-3):
     dim = 2 + int(not sobel)
     model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha, memory_dim, momentum, reassign_period, beta)
     return model
