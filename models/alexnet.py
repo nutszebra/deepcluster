@@ -27,6 +27,7 @@ class AlexNet(nn.Module):
         self.embedding = nn.Embedding(memory_dim, num_classes)
         # matrix to record whether embedding is used or not while training
         self.register_buffer('history', torch.randn(memory_dim))
+        self.register_buffer('mean_ce', torch.zeros(1))
         self.reset_history()
         self.counter = 0
         # define classifier
@@ -122,6 +123,8 @@ class AlexNet(nn.Module):
         loss_push2 = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=True)
         # return loss - self.alpha * loss_push - self.beta * loss_push2
         # return loss + self.alpha * loss_push - self.beta * loss_push2
+        import IPython
+        IPython.embed()
         return loss_push2
 
 
