@@ -129,6 +129,8 @@ class AlexNet(nn.Module):
                 self.mean_ce = loss_push2.data
             else:
                 self.mean_ce = self.momentum * self.mean_ce + (1.0 - self.momentum) * loss_push2.data
+        import IPython
+        IPython.embed()
         return - (loss_push2 - self.mean_ce)
 
 
