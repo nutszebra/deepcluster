@@ -107,6 +107,7 @@ class AlexNet(nn.Module):
         self.reset_history()
 
     def crit(self, y, t):
+        print(y)
         # reassing embedding
         # if self.training is True:
         #     self.counter += 1

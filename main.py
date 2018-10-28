@@ -102,18 +102,19 @@ def main():
 
     # training convnet with DeepCluster
     hash_git = subprocess.check_output('git log -n 1', shell=True).decode('utf-8').split(' ')[1].split('\n')[0]
+
+    # create dataset
+    train_dataset = modify_dataset.create_dataset(image_lists)
+
+    train_dataloader = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=args.batch,
+        num_workers=args.workers,
+        shuffle=True,
+        pin_memory=True,
+    )
+
     for epoch in tqdm.tqdm(range(args.start_epoch, args.epochs), desc=hash_git, leave=False, ncols=80):
-        # create dataset
-        train_dataset = modify_dataset.create_dataset(image_lists)
-
-        train_dataloader = torch.utils.data.DataLoader(
-            train_dataset,
-            batch_size=args.batch,
-            num_workers=args.workers,
-            shuffle=True,
-            pin_memory=True,
-        )
-
         loss = train(train_dataloader, model, optimizer, epoch)
 
         # print log
