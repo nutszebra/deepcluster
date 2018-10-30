@@ -103,7 +103,7 @@ class AlexNet(nn.Module):
             print('Reassignment: {}'.format(len(unused_embedding.data.cpu().numpy())))
             for i in unused_embedding:
                 selected_embedding = self.embedding.weight[used_embedding[random.randint(0, len(used_embedding) - 1)]]
-                self.embedding.weight.data[i] = self.update_embedding(selected_embedding, 0.001 * torch.randn_like(selected_embedding), self.momentum)
+                self.embedding.weight.data[i] = self.update_embedding(selected_embedding, torch.randn_like(selected_embedding), self.momentum)
         self.reset_history()
 
     def crit(self, y, t):
@@ -151,7 +151,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=1000, length_train=None, alpha=1.0e-1, memory_dim=10000, momentum=0.05, reassign_period=200, beta=1.0e-1):
+def alexnet(sobel=False, bn=True, out=100, length_train=None, alpha=1.0e-1, memory_dim=1000, momentum=0.99, reassign_period=10010, beta=1.0e-1):
     dim = 2 + int(not sobel)
     model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, length_train, alpha, memory_dim, momentum, reassign_period, beta)
     return model
