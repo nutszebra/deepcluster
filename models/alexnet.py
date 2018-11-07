@@ -84,6 +84,8 @@ class AlexNet(nn.Module):
         y = y.view(y.shape[0] * self.multi, -1)
         if self.clamp is None:
             self.clamp = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=True).item()
+        import IPython
+        IPython.embed()
         loss_push = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=False, reduce=False)
         loss_push = torch.clamp(loss_push, 0.0, self.clamp).sum() / y.shape[0]
         return loss_pull - self.alpha * loss_push
