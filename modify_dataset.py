@@ -22,7 +22,7 @@ class DatasetWithID(data.Dataset):
         self.transform = transform
 
     def __getitem__(self, index):
-        path, label = self.imgs[index]
+        path = self.imgs[index]
         img = pil_loader(path)
         if self.transform is not None:
             img1 = self.transform(img)
