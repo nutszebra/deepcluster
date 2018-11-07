@@ -15,7 +15,7 @@ def pil_loader(path):
         return img.convert('RGB')
 
 
-class DatasetWithID(data.Dataset):
+class DatasetWithDataAugmentation(data.Dataset):
 
     def __init__(self, image_lists, transform=None):
         self.imgs = image_lists
@@ -45,4 +45,4 @@ def create_dataset(image_lists):
                             transforms.CenterCrop(224),
                             transforms.ToTensor(),
                             normalize])
-    return DatasetWithID(image_lists, transform=t)
+    return DatasetWithDataAugmentation(image_lists, transform=t)

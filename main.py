@@ -136,7 +136,7 @@ def train(loader, model, opt, epoch):
     losses = AverageMeter()
     # switch to train mode
     model.train()
-    for i, (input_tensor, target) in enumerate(tqdm.tqdm(loader, desc='train {} epochs'.format(epoch), leave=True, ncols=80)):
+    for i, (input_tensor1, input_tensor2) in enumerate(tqdm.tqdm(loader, desc='train {} epochs'.format(epoch), leave=True, ncols=80)):
         # save checkpoint
         n = len(loader) * epoch + i
         if n % args.checkpoints == 0:
@@ -154,6 +154,8 @@ def train(loader, model, opt, epoch):
                 'optimizer': opt.state_dict()
             }, path)
 
+        import IPython 
+        IPython.embed()
         target = target.cuda(args.gpu, async=True)
         input_var = torch.autograd.Variable(input_tensor.cuda(args.gpu))
         target_var = torch.autograd.Variable(target)
