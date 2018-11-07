@@ -18,15 +18,16 @@ def pil_loader(path):
 class DatasetWithID(data.Dataset):
 
     def __init__(self, image_lists, transform=None):
-        self.imgs = [(img, i) for i, img in enumerate(image_lists)]
+        self.imgs = image_lists
         self.transform = transform
 
     def __getitem__(self, index):
         path, label = self.imgs[index]
         img = pil_loader(path)
         if self.transform is not None:
-            img = self.transform(img)
-        return img, label
+            img1 = self.transform(img)
+            img2 = self.transform(img)
+        return img1, img2
 
     def __len__(self):
         return len(self.imgs)
