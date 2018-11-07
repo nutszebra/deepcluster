@@ -4,6 +4,7 @@ import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.init as init
 
 import cross_entropy
 
@@ -65,24 +66,12 @@ class AlexNet(nn.Module):
 
     def _initialize_weights(self):
         for y, m in enumerate(self.modules()):
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                for i in range(m.out_channels):
-                    m.weight.data[i].normal_(0, math.sqrt(2. / n))
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+                init.xavier_uniform(m.weight, gain=math.sqrt(2))
                 if m.bias is not None:
-                    m.bias.data.zero_()
+                    init.constant(m.bias, 0)
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.Linear):
-                import IPython
-                IPython.embed()
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                for i in range(m.out_channels):
-                    m.weight.data[i].normal_(0, math.sqrt(2. / n))
-                if m.bias is not None:
-                    m.bias.data.zero_()
-                m.weight.data.normal_(0, 0.001)
                 m.bias.data.zero_()
 
     def crit(self, y):
