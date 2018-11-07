@@ -75,6 +75,13 @@ class AlexNet(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
+                import IPython
+                IPython.embed()
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                for i in range(m.out_channels):
+                    m.weight.data[i].normal_(0, math.sqrt(2. / n))
+                if m.bias is not None:
+                    m.bias.data.zero_()
                 m.weight.data.normal_(0, 0.001)
                 m.bias.data.zero_()
 
