@@ -83,7 +83,7 @@ class AlexNet(nn.Module):
         y1, y2 = y1.view(batch * self.multi, -1), y2.view(batch * self.multi, -1)
         loss_pull = cross_entropy.softmax_cross_entropy(y1, F.softmax(y2, 1), average=True, reduce=True)
         y = y.view(y.shape[0] * self.multi, -1)
-        loss_push = torch.clamp(0.0, 2.0, cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=False)).sum()
+        loss_push = torch.clamp(cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=False), 0.0, 2.0).sum()
         return loss_pull - self.alpha * loss_push
 
 
