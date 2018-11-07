@@ -37,10 +37,11 @@ parser.add_argument('--batch_size', default=256, type=int,
                     help='mini-batch size (default: 256)')
 parser.add_argument('--lr', default=0.01, type=float, help='learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum (default: 0.9)')
-parser.add_argument('--weight_decay', '--wd', default=-4, type=float,
+parser.add_argument('--weight_decay', '--wd', default=1.0e-5, type=float,
                     help='weight decay pow (default: -4)')
 parser.add_argument('--seed', type=int, default=31, help='random seed')
 parser.add_argument('--verbose', action='store_true', help='chatty')
+parser.add_argument('--gpu', type=int, default=-1, help='random seed')
 
 
 def main():
@@ -56,7 +57,7 @@ def main():
 
     # load model
     model = load_model(args.model)
-    model.cuda()
+    model.cuda(args.gpu)
     cudnn.benchmark = True
 
     # freeze the features layers
@@ -64,7 +65,7 @@ def main():
         param.requires_grad = False
 
     # define loss function (criterion) and optimizer
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
     # data loading code
     traindir = os.path.join(args.data, 'train')
@@ -111,12 +112,12 @@ def main():
                                              num_workers=args.workers)
 
     # logistic regression
-    reglog = RegLog(args.conv, len(train_dataset.classes)).cuda()
+    reglog = RegLog(args.conv, len(train_dataset.classes)).cuda(args.gpu)
     optimizer = torch.optim.SGD(
         filter(lambda x: x.requires_grad, reglog.parameters()),
         args.lr,
         momentum=args.momentum,
-        weight_decay=10**args.weight_decay
+        weight_decay=args.weight_decay
     )
 
     # create logs
@@ -159,7 +160,7 @@ def main():
 
 
 class RegLog(nn.Module):
-    """Creates logistic regression on top of frozen features"""
+
     def __init__(self, conv, num_labels):
         super(RegLog, self).__init__()
         self.conv = conv
@@ -199,6 +200,7 @@ def forward(x, model, conv):
             count = count + 1
     return x
 
+
 def accuracy(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
     maxk = max(topk)
@@ -213,6 +215,7 @@ def accuracy(output, target, topk=(1,)):
         correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
+
 
 def train(train_loader, model, reglog, criterion, optimizer, epoch):
     batch_time = AverageMeter()
@@ -233,8 +236,8 @@ def train(train_loader, model, reglog, criterion, optimizer, epoch):
         #adjust learning rate
         learning_rate_decay(optimizer, len(train_loader) * epoch + i, args.lr)
 
-        target = target.cuda(async=True)
-        input_var = torch.autograd.Variable(input.cuda())
+        target = target.cuda(args.gpu, async=True)
+        input_var = torch.autograd.Variable(input.cuda(args.gpu))
         target_var = torch.autograd.Variable(target)
         # compute output
 
@@ -275,14 +278,14 @@ def validate(val_loader, model, reglog, criterion):
 
     # switch to evaluate mode
     model.eval()
-    softmax = nn.Softmax(dim=1).cuda()
+    softmax = nn.Softmax(dim=1).cuda(args.gpu)
     end = time.time()
     for i, (input_tensor, target) in enumerate(val_loader):
         if args.tencrops:
             bs, ncrops, c, h, w = input_tensor.size()
             input_tensor = input_tensor.view(-1, c, h, w)
-        target = target.cuda(async=True)
-        input_var = torch.autograd.Variable(input_tensor.cuda(), volatile=True)
+        target = target.cuda(args.gpu, async=True)
+        input_var = torch.autograd.Variable(input_tensor.cuda(args.gpu), volatile=True)
         target_var = torch.autograd.Variable(target, volatile=True)
 
         output = reglog(forward(input_var, model, reglog.conv))
