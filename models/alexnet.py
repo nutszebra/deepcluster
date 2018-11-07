@@ -78,8 +78,6 @@ class AlexNet(nn.Module):
                 m.bias.data.zero_()
 
     def crit(self, y):
-        import IPython
-        IPython.embed()
         batch = int(y.shape[0] / 2)
         y1, y2 = y[:batch], y[batch:]
         y1, y2 = y1.view(batch * self.multi, -1), y2.view(batch * self.multi, -1)
