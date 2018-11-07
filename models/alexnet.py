@@ -22,6 +22,7 @@ class AlexNet(nn.Module):
         print('num_classes: {}'.format(num_classes))
         print('sobel: {}'.format(sobel))
         print('alpha: {}'.format(alpha))
+        print('multi: {}'.format(multi))
         self.alpha, self.multi = alpha, multi
         # define classifier
         self.features = features
@@ -79,32 +80,13 @@ class AlexNet(nn.Module):
     def crit(self, y):
         import IPython
         IPython.embed()
-        # reassing embedding
-        if self.training is True:
-            self.counter += 1
-            if self.counter >= self.reassign_period:
-                self.reassign()
-        # index of embedding that are nearest
-        index_of_min_embedding = torch.argmin(torch.matmul(torch.log(F.softmax(y, 1)), F.softmax(self.embedding.weight, 1).transpose(0, 1)), 1)
-        if self.training is True:
-            # update history while training
-            self.history[index_of_min_embedding] += 1
-        t = self.embedding.weight[index_of_min_embedding]
-        loss = cross_entropy.softmax_cross_entropy(y, F.softmax(t, 1), average=True, reduce=True)
-        loss_push = cross_entropy.softmax_cross_entropy(torch.cat((t[1:], t[:1])), F.softmax(t, 1), average=True, reduce=True)
-        loss_push2 = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1).detach(), average=True, reduce=True)
-        return loss - self.alpha * loss_push - self.beta * loss_push2
-        # return loss + self.alpha * loss_push - self.beta * loss_push2
-        # if self.training is True:
-        #     if len(self.mean_ce.nonzero()) == 0:
-        #         # first iteration
-        #         self.mean_ce = loss_push2.data
-        #         return - loss_push2
-        #     else:
-        #         self.mean_ce = self.momentum * self.mean_ce + (1.0 - self.momentum) * loss_push2.data
-        #         return - (loss_push2 - self.mean_ce)
-        # else:
-        #     return - loss_push2
+        batch = int(y.shape[0] / 2)
+        y1, y2 = y[:batch], y[batch:]
+        y1, y2 = y1.view(batch * self.multi, -1), y2.view(batch * self.multi, -1)
+        loss_pull = cross_entropy.softmax_cross_entropy(y1, F.softmax(y2, 1), average=True, reduce=True)
+        y = y.view(y.shape[0] * self.multi, -1)
+        loss_push = cross_entropy.softmax_cross_entropy(torch.cat((y[1:], y[:1])), F.softmax(y, 1), average=True, reduce=True)
+        return loss_pull - self.alpha * loss_push
 
 
 def make_layers_features(cfg, input_dim, bn):
