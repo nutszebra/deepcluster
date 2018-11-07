@@ -6,6 +6,7 @@
 #
 import os
 import pickle
+import numpy as np
 
 import torch
 
@@ -76,3 +77,9 @@ class Logger():
         self.data.append(train_point)
         with open(os.path.join(self.path), 'wb') as fp:
             pickle.dump(self.data, fp, -1)
+
+
+def learning_rate_decay(optimizer, t, lr_0):
+    for param_group in optimizer.param_groups:
+        lr = lr_0 / np.sqrt(1 + lr_0 * param_group['weight_decay'] * t)
+        param_group['lr'] = lr
