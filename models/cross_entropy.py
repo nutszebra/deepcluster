@@ -1,4 +1,6 @@
 import torch
+import torch.nn.functional as F
+
 
 class SoftmaxCrossEntropy(object):
 
@@ -22,8 +24,6 @@ def softmax_cross_entropy(y, t, average=True, reduce=True):
 
 
 if __name__ == "__main__":
-    import torch
-    import torch.nn.functional as F
     w = torch.nn.Parameter(torch.FloatTensor([[0.1, 0.2, 0.3, 0.4, 0.5], [0.1, 0.1, 0.1, 0.1, 0.1]]))
     t = torch.FloatTensor([[0.2, 0.1, 0.1, 0.5, 0.1], [0.2, 0.1, 0.1, 0.5, 0.1]])
     optimizer = torch.optim.SGD([w], lr=0.01)
