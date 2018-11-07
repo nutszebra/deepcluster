@@ -48,7 +48,7 @@ def main():
     global args
     args = parser.parse_args()
 
-    #fix random seeds
+    # fix random seeds
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
     np.random.seed(args.seed)
@@ -107,7 +107,7 @@ def main():
                                                num_workers=args.workers,
                                                pin_memory=True)
     val_loader = torch.utils.data.DataLoader(val_dataset,
-                                             batch_size=int(args.batch_size/2),
+                                             batch_size=int(args.batch_size / 2),
                                              shuffle=False,
                                              num_workers=args.workers)
 
@@ -130,8 +130,6 @@ def main():
     prec5_log = Logger(os.path.join(exp_log, 'prec5'))
 
     for epoch in range(args.epochs):
-        end = time.time()
-
         # train for one epoch
         train(train_loader, model, reglog, criterion, optimizer, epoch)
 
@@ -155,7 +153,7 @@ def main():
             'state_dict': model.state_dict(),
             'prec5': prec5,
             'best_prec1': best_prec1,
-            'optimizer' : optimizer.state_dict(),
+            'optimizer': optimizer.state_dict(),
         }, os.path.join(args.exp, filename))
 
 
@@ -164,19 +162,19 @@ class RegLog(nn.Module):
     def __init__(self, conv, num_labels):
         super(RegLog, self).__init__()
         self.conv = conv
-        if conv==1:
+        if conv == 1:
             self.av_pool = nn.AvgPool2d(6, stride=6, padding=3)
             s = 9600
-        elif conv==2:
+        elif conv == 2:
             self.av_pool = nn.AvgPool2d(4, stride=4, padding=0)
             s = 9216
-        elif conv==3:
+        elif conv == 3:
             self.av_pool = nn.AvgPool2d(3, stride=3, padding=1)
             s = 9600
-        elif conv==4:
+        elif conv == 4:
             self.av_pool = nn.AvgPool2d(3, stride=3, padding=1)
             s = 9600
-        elif conv==5:
+        elif conv == 5:
             self.av_pool = nn.AvgPool2d(2, stride=2, padding=0)
             s = 9216
         self.linear = nn.Linear(s, num_labels)
@@ -233,7 +231,7 @@ def train(train_loader, model, reglog, criterion, optimizer, epoch):
         # measure data loading time
         data_time.update(time.time() - end)
 
-        #adjust learning rate
+        # adjust learning rate
         learning_rate_decay(optimizer, len(train_loader) * epoch + i, args.lr)
 
         target = target.cuda(args.gpu, async=True)
@@ -246,7 +244,7 @@ def train(train_loader, model, reglog, criterion, optimizer, epoch):
         loss = criterion(output, target_var)
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
-        losses.update(loss.data[0], input.size(0))
+        losses.update(loss.data.item(), input.size(0))
         top1.update(prec1[0], input.size(0))
         top5.update(prec5[0], input.size(0))
 
@@ -291,7 +289,7 @@ def validate(val_loader, model, reglog, criterion):
         output = reglog(forward(input_var, model, reglog.conv))
 
         if args.tencrops:
-            output_central = output.view(bs, ncrops, -1)[: , ncrops / 2 - 1, :]
+            output_central = output.view(bs, ncrops, -1)[:, ncrops / 2 - 1, :]
             output = softmax(output)
             output = torch.squeeze(output.view(bs, ncrops, -1).mean(1))
         else:
@@ -301,7 +299,7 @@ def validate(val_loader, model, reglog, criterion):
         top1.update(prec1[0], input_tensor.size(0))
         top5.update(prec5[0], input_tensor.size(0))
         loss = criterion(output_central, target_var)
-        losses.update(loss.data[0], input_tensor.size(0))
+        losses.update(loss.data.item(), input_tensor.size(0))
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -317,6 +315,7 @@ def validate(val_loader, model, reglog, criterion):
                    loss=losses, top1=top1, top5=top5))
 
     return top1.avg, top5.avg, losses.avg
+
 
 if __name__ == '__main__':
     main()
