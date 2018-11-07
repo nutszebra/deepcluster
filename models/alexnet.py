@@ -17,19 +17,12 @@ CFG = {
 
 class AlexNet(nn.Module):
 
-    def __init__(self, features, num_classes, sobel, length_train, alpha, memory_dim, momentum, reassign_period, beta):
+    def __init__(self, features, num_classes, sobel, alpha):
         super(AlexNet, self).__init__()
         print('num_classes: {}'.format(num_classes))
         print('sobel: {}'.format(sobel))
         print('alpha: {}'.format(alpha))
-        self.alpha, self.momentum, self.reassign_period, self.beta = alpha, momentum, reassign_period, beta
-        # define embedding
-        self.embedding = nn.Embedding(memory_dim, num_classes)
-        # matrix to record whether embedding is used or not while training
-        self.register_buffer('history', torch.randn(memory_dim))
-        self.register_buffer('mean_ce', torch.zeros(1))
-        self.reset_history()
-        self.counter = 0
+        self.alpha = alpha
         # define classifier
         self.features = features
         self.classifier = nn.Sequential(nn.Dropout(0.5),
@@ -38,7 +31,6 @@ class AlexNet(nn.Module):
                                         nn.Dropout(0.5),
                                         nn.Linear(4096, 4096),
                                         nn.ReLU(inplace=True))
-
         self.top_layer = nn.Linear(4096, num_classes)
         self._initialize_weights()
 
@@ -84,29 +76,7 @@ class AlexNet(nn.Module):
                 m.weight.data.normal_(0, 0.001)
                 m.bias.data.zero_()
 
-    def reset_history(self):
-        self.history.zero_()
-        self.counter = 0
-
-    def update_embedding(self, x1, x2, momentum):
-        return (momentum * x1 + (1.0 - momentum) * x2).detach()
-
-    def reassign(self):
-        if ((self.history == 0).sum().item() == 0) or (self.history.sum().item() == 0):
-            print('No reassignment')
-            # every memory are used at least once or no history, so no assignment
-            pass
-        else:
-            # index of used embedding and non-used ones
-            used_embedding = torch.nonzero(self.history).squeeze(1)
-            unused_embedding = torch.nonzero(self.history == 0).squeeze(1)
-            print('Reassignment: {}'.format(len(unused_embedding.data.cpu().numpy())))
-            for i in unused_embedding:
-                selected_embedding = self.embedding.weight[used_embedding[random.randint(0, len(used_embedding) - 1)]]
-                self.embedding.weight.data[i] = self.update_embedding(selected_embedding, torch.randn_like(selected_embedding), self.momentum)
-        self.reset_history()
-
-    def crit(self, y, t):
+    def crit(self, y):
         import IPython
         IPython.embed()
         # reassing embedding
