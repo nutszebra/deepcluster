@@ -44,6 +44,10 @@ parser.add_argument('--exp', type=str, default='', help='path to exp folder')
 parser.add_argument('--verbose', action='store_true', help='chatty')
 parser.add_argument('--alpha', default=1.0e-2, type=float,
                     help='alpha')
+parser.add_argument('--out', default=100, type=int,
+                    help='out')
+parser.add_argument('--multi', default=10, type=int,
+                    help='multi')
 parser.add_argument('--gpu', default=-1, type=int,
                     help='gpu')
 
@@ -65,7 +69,7 @@ def main():
     # CNN
     if args.verbose:
         print('Architecture: {}'.format(args.arch))
-    model = models.__dict__[args.arch](sobel=args.sobel, length_train=len(image_lists), alpha=args.alpha)
+    model = models.__dict__[args.arch](sobel=args.sobel, alpha=args.alpha, out=args.out, multi=args.multi)
     model.cuda(args.gpu)
     cudnn.benchmark = True
 

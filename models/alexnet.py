@@ -17,12 +17,12 @@ CFG = {
 
 class AlexNet(nn.Module):
 
-    def __init__(self, features, num_classes, sobel, alpha):
+    def __init__(self, features, num_classes, sobel, alpha, multi):
         super(AlexNet, self).__init__()
         print('num_classes: {}'.format(num_classes))
         print('sobel: {}'.format(sobel))
         print('alpha: {}'.format(alpha))
-        self.alpha = alpha
+        self.alpha, self.multi = alpha, multi
         # define classifier
         self.features = features
         self.classifier = nn.Sequential(nn.Dropout(0.5),
@@ -123,7 +123,7 @@ def make_layers_features(cfg, input_dim, bn):
     return nn.Sequential(*layers)
 
 
-def alexnet(sobel=False, bn=True, out=100, alpha=1.0e-1):
+def alexnet(sobel=False, bn=True, out=100, alpha=1.0e-1, multi=10):
     dim = 2 + int(not sobel)
-    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, alpha)
+    model = AlexNet(make_layers_features(CFG['2012'], dim, bn=bn), out, sobel, alpha, multi)
     return model
